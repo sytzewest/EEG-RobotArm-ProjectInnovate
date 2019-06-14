@@ -16,4 +16,5 @@ Make sure the headset is connected and TG_Connector is running. Press the start 
 Build tools: Gradle  
 Language: Kotlin  
 GUI Libraries: JavaFX, TornadoFX  
-Concurrency tools: Kotlin Coroutines
+Concurrency tools: Kotlin Coroutines  
+Data serialization: Jackson
