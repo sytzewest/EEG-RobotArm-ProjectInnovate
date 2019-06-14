@@ -1,44 +1,75 @@
 package com.nhlstenden.mindwave
 
-import java.io.BufferedReader
+import com.fasterxml.jackson.core.JsonParseException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.net.Socket
-import kotlin.system.exitProcess
+import java.util.*
 
-class HeadsetReader(enableRawData: Boolean = false) : AutoCloseable {
+class HeadsetReader(scope: CoroutineScope, enableRawData: Boolean) {
+
     private val socket: Socket
-    private val reader: BufferedReader
+    private val subscribers = Collections.synchronizedMap(mutableMapOf<Any, (HeadsetData) -> Unit>())
 
     init {
         try {
             socket = Socket("localhost", 13854)
         } catch (e: Exception) {
-            System.err.println("Could not connect to ThinkGear Connector")
-            exitProcess(-1)
+            error("Could not connect to ThinkGear Connector")
         }
 
-        reader = socket.getInputStream().bufferedReader()
-
-        while (!socket.isConnected) {}
+        //wait for connection
+        while (!socket.isConnected) {
+        }
 
         //by default raw data is hidden and data is received in binary
         //this switches format to JSON with raw enabled
         socket.getOutputStream().write(
-                """
+            """
                     {"enableRawOutput": $enableRawData, "format": "Json"}
-                """.trim().toByteArray(charset("ASCII")
-                )
+                """.trim().toByteArray(
+                charset("ASCII")
+            )
         )
         socket.getOutputStream().flush()
 
         //wait for config change to take effect since there's no response to confirm it
-        Thread.sleep(500)
+        //if packet can be parsed as a proper json, the configuration has been updated
+        val reader = socket.getInputStream().bufferedReader()
+        while (true) {
+            try {
+                HeadsetData.from(reader.readLine())
+                break
+            } catch (_: JsonParseException) {
+
+            }
+        }
+
+        //launch a parallel task reading packets as they come in and sending them to current subscribers
+        //will keep reading until the application closes
+        scope.launch(Dispatchers.IO) {
+            //make sure to close sockets if the task is cancelled
+            socket.use {
+                reader.useLines { lines ->
+                    lines.map(HeadsetData.Companion::from).forEach { packet ->
+                        //send data to subscribers asynchronously so they can't block the reading
+                        launch {
+                            subscribers.values.forEach { it(packet) }
+                        }
+                    }
+                }
+            }
+        }
     }
 
-    //data comes in one packet per line, all data packets in one stream
-    fun read() = reader.readLine().let(HeadsetData.Companion::from)
+    //adds a subscriber and returns a token that can be used to remove that subscriber later
+    fun subscribe(subscriber: (HeadsetData) -> Unit) = Any().also {
+        subscribers += it to subscriber
+    }
 
-    override fun close() {
-        reader.close()
-        socket.close()
+    //removes a subscriber
+    fun unsubscribe(token: Any) {
+        subscribers -= token
     }
 }
