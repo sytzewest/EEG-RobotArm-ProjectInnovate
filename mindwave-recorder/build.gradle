@@ -38,3 +38,8 @@ jar {
         )
     }
 }
+
+tasks.register("run", JavaExec) {
+    main = 'com.nhlstenden.mindwave.RecorderAppKt'
+    classpath = sourceSets.main.runtimeClasspath
+}
