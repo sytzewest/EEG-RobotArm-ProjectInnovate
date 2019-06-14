@@ -1,5 +1,4 @@
 {
-  "recordingRate" : 100.0,
   "modeDuration" : 5.0,
   "modes" : [ "left", "none", "right" ]
 }
