@@ -1,16 +1,20 @@
 package com.nhlstenden.mindwave
 
-import com.fasterxml.jackson.core.JsonParseException
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import java.net.Socket
 import java.util.*
+import kotlin.concurrent.thread
 
-class HeadsetReader(scope: CoroutineScope, enableRawData: Boolean) {
+//each packet will have a unique ID attached to it
+data class DataPacketWithId<T : HeadsetData>(val packet: T, val id: Long)
 
+fun <T : HeadsetData> T.withId(id: Long) = DataPacketWithId(this, id)
+
+class HeadsetReader(enableRawData: Boolean) : AutoCloseable {
     private val socket: Socket
-    private val subscribers = Collections.synchronizedMap(mutableMapOf<Any, (HeadsetData) -> Unit>())
+    private val latestPackets = Collections.synchronizedMap(mutableMapOf<String, DataPacketWithId<*>>())
+
+    //packet ID counter
+    private var nextId = 0L
 
     init {
         try {
@@ -27,49 +31,46 @@ class HeadsetReader(scope: CoroutineScope, enableRawData: Boolean) {
         //this switches format to JSON with raw enabled
         socket.getOutputStream().write(
             """
-                    {"enableRawOutput": $enableRawData, "format": "Json"}
-                """.trim().toByteArray(
+                {"enableRawOutput": $enableRawData, "format": "Json"}
+            """.trim().toByteArray(
                 charset("ASCII")
             )
         )
         socket.getOutputStream().flush()
 
         //wait for config change to take effect since there's no response to confirm it
-        //if packet can be parsed as a proper json, the configuration has been updated
-        val reader = socket.getInputStream().bufferedReader()
-        while (true) {
-            try {
-                HeadsetData.from(reader.readLine())
-                break
-            } catch (_: JsonParseException) {
-
-            }
+        //this will wait for { to appear in the input and then discard the line it appears on
+        //as it is likely malformed from the switch
+        val reader = socket.getInputStream().reader()
+        while (reader.read().toChar() != '{') {
+        }
+        while (reader.read().toChar() != '\r') {
         }
 
-        //launch a parallel task reading packets as they come in and sending them to current subscribers
-        //will keep reading until the application closes
-        scope.launch(Dispatchers.IO) {
-            //make sure to close sockets if the task is cancelled
+        //launch a parallel thread reading packets as they come in and sending them to current subscribers
+        //will keep reading until the application or reader instance is closed
+        thread {
             socket.use {
-                reader.useLines { lines ->
-                    lines.map(HeadsetData.Companion::from).forEach { packet ->
-                        //send data to subscribers asynchronously so they can't block the reading
-                        launch {
-                            subscribers.values.forEach { it(packet) }
-                        }
-                    }
+                reader.forEachLine {
+                    val data = HeadsetData.from(it)
+
+                    latestPackets[data::class.java.simpleName] = data.withId(nextId++)
                 }
             }
         }
     }
 
-    //adds a subscriber and returns a token that can be used to remove that subscriber later
-    fun subscribe(subscriber: (HeadsetData) -> Unit) = Any().also {
-        subscribers += it to subscriber
+    //returns latest packet of the specified type
+    @Suppress("UNCHECKED_CAST")
+    fun <T : HeadsetData> getLatestPacketOfType(type: String): DataPacketWithId<T>? {
+        return latestPackets[type] as DataPacketWithId<T>?
     }
 
-    //removes a subscriber
-    fun unsubscribe(token: Any) {
-        subscribers -= token
+    override fun close() {
+        socket.close()
     }
 }
+
+//returns latest packet of the type as specified by the type parameter
+inline fun <reified T : HeadsetData> HeadsetReader.getLatestPacket() =
+    getLatestPacketOfType<T>(T::class.java.simpleName)
