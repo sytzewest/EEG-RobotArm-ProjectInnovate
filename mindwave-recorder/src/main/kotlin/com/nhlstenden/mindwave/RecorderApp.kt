@@ -1,26 +1,15 @@
 package com.nhlstenden.mindwave
 
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
 import javafx.application.Application
 import javafx.geometry.Pos
 import javafx.scene.image.ImageView
-import javafx.scene.layout.Border
-import javafx.scene.layout.BorderStroke
-import javafx.scene.layout.BorderStrokeStyle
-import javafx.scene.layout.CornerRadii
-import javafx.scene.media.Media
-import javafx.scene.media.MediaPlayer
 import javafx.scene.paint.Color
-import javafx.scene.paint.Paint
 import javafx.scene.text.Text
-import javafx.util.Duration
 import kotlinx.coroutines.*
 import kotlinx.coroutines.javafx.JavaFx
 import tornadofx.*
 import java.io.File
-
-val mapper = jacksonObjectMapper()
 
 fun main(args: Array<String>) {
     Application.launch(RecorderApp::class.java, *args)
@@ -32,26 +21,25 @@ class RecorderApp : App() {
 
 //main window of the recorder
 class RecorderView : View("Mindwave Recorder"), CoroutineScope by MainScope() {
-    private val headsetReader = HeadsetReader(this, enableRawData = true)
-
-    private val mediaPlayer = MediaPlayer(Media(resources.url("/sound.wav").toExternalForm()))
+    private val headsetReader = HeadsetReader(enableRawData = true)
 
     //a handle for the currently running recording
     private var currentRecordingJob by property<Job?>(null)
 
+    //a reactive property for the handle, used to update the buttons
     private fun currentJobProperty() = getProperty(RecorderView::currentRecordingJob)
 
     //try to read config and replace it with default if failed
     private val recordingConfig = try {
         mapper.readValue<RecordingConfig>(File("config.json"))
     } catch (_: Exception) {
-        RecordingConfig.DEFAULT.also {
+        RecordingConfig().also {
             mapper.writerWithDefaultPrettyPrinter().writeValue(File("config.json"), it)
         }
     }
 
-    lateinit var label: Text
-    lateinit var image: ImageView
+    private lateinit var label: Text
+    private lateinit var image: ImageView
 
     //layout of the recorder window
     override val root = vbox {
@@ -92,6 +80,7 @@ class RecorderView : View("Mindwave Recorder"), CoroutineScope by MainScope() {
 
             button("cancel") {
                 action {
+                    //cancel and discard the recording task
                     currentRecordingJob?.cancel()
                     currentRecordingJob = null
                 }
@@ -102,90 +91,102 @@ class RecorderView : View("Mindwave Recorder"), CoroutineScope by MainScope() {
     }
 
     //starts a recording session on button press
-    private fun startRecording() = launch {
+    private fun startRecording() = launch(Dispatchers.Default) {
         updateUI {
             label.text = "Waiting for connection"
         }
 
-        //wait for reader to stop returning status reports, which indicates it has connected to the headset
-        var connected = false
-        val connectionSub = headsetReader.subscribe {
-            if (it !is HeadsetData.StatusReport) {
-                connected = true
+        //wait for raw data to become available
+        while (headsetReader.getLatestPacket<HeadsetData.RawData>() == null) {
+            yield()
+        }
+
+        val outFile = File("rawData.csv")
+        //if file doesn't exist, create it and write the table heading in the background
+        val createTask = async(Dispatchers.IO) {
+            if (!outFile.exists()) {
+                outFile.createNewFile()
+                val valueLabels = (1..(recordingConfig.valuesBefore + recordingConfig.valuesAfter)).joinToString(
+                    separator = ",",
+                    transform = { "v$it" }
+                )
+                outFile.appendText("$valueLabels,label\n")
             }
         }
 
-        //recording can be cancelled here, which causes yield() to throw an exception
-        //finally makes sure we remove the loose subscriber if that happens
-        try {
-            while (!connected) {
-                yield() //does nothing unless task is cancelled
-            }
-        } finally {
-            headsetReader.unsubscribe(connectionSub)
+        //generate a series of random modes to record
+        val modes = (1..recordingConfig.iterations).map {
+            listOf("left", "right").random()
         }
 
-        //create a new file for this recording session
-        createTempFile(prefix = "raw", suffix = ".csv", directory = File("."))
-            .printWriter()
-            .use { out ->
-                out.println("timeMs,rawEeg,label")
+        //write new data to a string
+        val newData = StringBuilder()
+        //iterate through all configured modes and record labelled data for each
+        modes.forEachIndexed { i, mode ->
+            //hide arrow, record before
+            updateUI {
+                image.image = resources.image("/none.png")
+                label.text = "Recording data (${i + 1} / ${recordingConfig.iterations})"
+            }.join()
 
-                val recordingStart = System.currentTimeMillis()
+            val before = recordDataset(recordingConfig.valuesBefore, recordingConfig.recordingPauseNs)
 
-                //iterate through all configured modes and record labelled data for each
-                recordingConfig.modes.forEachIndexed { i, mode ->
-                    updateUI {
-                        image.image = resources.image("/$mode.png")
-                        label.text = "Recording data: $mode (${i + 1} / ${recordingConfig.modes.size})"
-                        mediaPlayer.stop()
-                        mediaPlayer.seek(Duration.ZERO)
-                        mediaPlayer.play()
-                    }
+            //show arrow, record after
+            updateUI {
+                image.image = resources.image("/$mode.png")
+            }.join()
 
+            val after = recordDataset(recordingConfig.valuesAfter, recordingConfig.recordingPauseNs)
+            newData.append((before + after + mode).joinToString(",", postfix = "\n"))
 
-                    //subscribe to receive and print raw data
-                    val packetSub = headsetReader.subscribe { packet ->
-                        val currentTime = System.currentTimeMillis()
+            require(before.size == recordingConfig.valuesBefore)
+            require(after.size == recordingConfig.valuesAfter)
 
-                        when (packet) {
-                            is HeadsetData.RawData ->
-                                out.println(
-                                    listOf(
-                                        currentTime - recordingStart,
-                                        packet.rawEeg,
-                                        mode
-                                    ).joinToString(",")
-                                )
-                            is HeadsetData.StatusReport ->
-                                updateUI {
-                                    label.text = "Connection lost"
-                                }
-                        }
-                    }
-
-                    //wait for the duration of the mode and stop listening
-                    //also watch out for recording cancellation exception
-                    try {
-                        delay((1000 * recordingConfig.modeDuration).toLong())
-                    } finally {
-                        headsetReader.unsubscribe(packetSub)
-                    }
-                }
-
-                //done
+            if (recordingConfig.pauseBetweenModesMs > 0) {
+                //hide arrow, wait before next recording
                 updateUI {
                     image.image = resources.image("/none.png")
-                    label.text = "Recording done"
-                    currentRecordingJob = null
-                }
+                }.join()
+
+                //delay(..) seems bugged, breaks system timer?
+                //using Thread.sleep instead
+                Thread.sleep(recordingConfig.pauseBetweenModesMs)
             }
+        }
+
+        //show completion
+        updateUI {
+            image.image = resources.image("/none.png")
+            label.text = "Recording done"
+            currentRecordingJob = null
+        }
+
+        //wait for the file creation and writing to finish (it likely)
+        //then append the data to the file
+        createTask.await()
+        outFile.appendText(newData.toString())
     }
 
     //posts a task to the UI thread
     private fun CoroutineScope.updateUI(block: suspend CoroutineScope.() -> Unit) =
         launch(Dispatchers.JavaFx, block = block)
 
+    //records values from the HeadsetReader
+    private fun recordDataset(
+        valueCount: Int,
+        recordingPauseNs: Long
+    ): List<String> {
+
+        //record the specified amount of packets, waiting for the specified period between each recording
+        return List(valueCount) {
+            Thread.sleep(recordingPauseNs / 1000000, (recordingPauseNs % 1000000).toInt())
+            val packet = headsetReader.getLatestPacket<HeadsetData.RawData>()!!
+
+            packet.packet.rawEeg.toString()
+        }
+    }
+
+    //cancel all background tasks if the application is closed
     override fun onDelete() {
         cancel()
         super.onDelete()
