@@ -1,12 +1,10 @@
 package com.nhlstenden.mindwave
 
 //configuration for the recorder app
-//recording rate is rate at which data wil
 data class RecordingConfig(
-    val modeDuration: Double,
-    val modes: List<String>
-) {
-    companion object {
-        val DEFAULT = RecordingConfig(5.0, listOf("left", "none", "right"))
-    }
-}
+    val iterations: Int = 3, //how many arrows to show
+    val recordingPauseNs: Long = 100_000, //how often to record packets (in nanoseconds)
+    val pauseBetweenModesMs: Long = 500, //how long to wait between arrow recordings (in milliseconds)
+    val valuesBefore: Int = 200, //how many data points to record before each arrow
+    val valuesAfter: Int = 200 //how many data points to record after each arrow
+)
