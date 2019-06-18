@@ -30,10 +30,10 @@ class URRobot:
         self.is_magnet_active = 0
 
         # variables representing the minimum and maximum values for the X, Y & Z axis, which the arm can reach (in mm)
-        self.max_x = 100.00  # to right, one move
+        self.max_x = 100.00  # to right, 2 moves
         self.max_y = -750.00
         self.max_z = 400
-        self.min_x = -200.00 # to left, one move
+        self.min_x = -300.00  # to left, 2 moves
         self.min_y = -850.00
         self.min_z = 6
 
@@ -158,10 +158,12 @@ class URRobot:
 
     def move_right(self):
         """
-        Function to move the robot to the right 10cm, with a waiting time of 0.5 seconds between movements.
+        Function to move the robot to the right 10cm, with a waiting time of 15 seconds between movements.
         """
 
         vector = list((0.10, 0.0, 0.0))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.right_moves < 3 and self.is_within_boundaries(vector):
             self.translate(vector)
             self.right_moves += 1
@@ -173,7 +175,7 @@ class URRobot:
 
     def move_left(self):
         """
-        function to move the robot to the left 10cm, with a waiting time of 0.5 seconds between movements.
+        Function to move the robot to the left 10cm, with a waiting time of 15 seconds between movements.
         """
 
         vector = list((-0.10, 0.0, 0.0))
@@ -188,7 +190,7 @@ class URRobot:
 
     def move_up(self):
         """
-        Function to move the robot up 9.8cm and backwards 2cm , with a waiting time of 0.5 seconds between movements.
+        Function to move the robot up 9.8cm and backwards 2cm , with a waiting time of 15 seconds between movements.
         """
 
         vector = list((0.0, 0.02, 0.098))
@@ -203,7 +205,7 @@ class URRobot:
 
     def move_down(self):
         """
-        Function to move the robot down 9.8cm and forward 2cm, with a waiting time of 0.5 seconds between movements.
+        Function to move the robot down 9.8cm and forward 2cm, with a waiting time of 15 seconds between movements.
         """
 
         vector = list((0.0, -0.02, -0.098))
@@ -211,14 +213,14 @@ class URRobot:
             self.translate(vector)  # z changes by 60mm
             self.down_moves += 1
             self.up_moves -= 1
-            time.sleep(0.5)
+            time.sleep(15)
         else:
             self.stopj()
             print("Stopped")
 
     def move_forward(self):
         """
-        Function to move the robot forward with 5 cm, with a waiting time of 0.5 seconds between movements.
+        Function to move the robot forward with 5 cm, with a waiting time of 15 seconds between movements.
         """
 
         vector = list((0.0, -0.05, 0.0))
@@ -226,14 +228,14 @@ class URRobot:
             self.translate(vector)
             self.forward_moves += 1
             self.backward_moves -= 1
-            time.sleep(3)
+            time.sleep(15)
         else:
             self.stopj()
             print("Stopped")
 
     def move_backward(self):
         """
-        Function to move the robot backwards 5 cm, with a waiting time of 0.5 seconds between movements.
+        Function to move the robot backwards 5 cm, with a waiting time of 15 seconds between movements.
         """
 
         vector = list((0.0, 0.05, 0.0))
@@ -241,7 +243,7 @@ class URRobot:
             self.translate(vector)
             self.backward_moves += 1
             self.forward_moves -= 1
-            time.sleep(3)
+            time.sleep(15)
         else:
             self.stopj()
             print("Stopped")
@@ -323,5 +325,87 @@ class URRobot:
         else:
             print("Outside boundaries")
             return 0
+
+    def recalculate_position(self, vector):
+        next_position = self.next_position(vector)  # (0.1, 0.2, 0.3)
+        x = next_position[0] * 1000  # 1000
+        y = next_position[1] * 1000
+        z = next_position[2] * 1000
+        x_error = y_error = z_error = 0
+        if x < self.min_x:
+            x = self.min_x + 10
+            x_error = (x - self.min_x) / 1000
+        elif x > self.max_x:
+            x = self.max_x - 10
+            x_error = (x - self.max_x) / 1000
+        if y < self.min_y:
+            y = self.min_y + 10
+            y_error = (y - self.min_y) / 1000
+        elif y > self.max_y:
+            y = self.max_y - 10
+            y_error = (y - self.max_y) / 1000
+        if z < self.min_z:
+            z = self.min_z + 10
+            z_error = (z - self.min_z) / 1000
+        elif z > self.max_z:
+            z = self.max_z - 10
+            z_error = (z - self.min_z) / 1000
+
+    def go_to_starting_position(self):
+        self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
+
+    def draw_square(self):
+        self.go_to_starting_position()  # A
+        print("A")
+        length = 0.1
+        time.sleep(5)
+        self.translate((0, -length, 0))  # B
+        print("B")
+        time.sleep(5)
+        self.translate((length, 0, 0))  # C
+        print("C")
+        time.sleep(5)
+        self.translate((0, length, 0))  # D
+        print("D")
+        time.sleep(5)
+        self.go_to_starting_position()  # go back to A
+        print("Back to A")
+
+    def draw_rectangle(self):
+        self.go_to_starting_position()  # A
+        length = 0.1
+        width = 0.25
+        time.sleep(10)
+        self.translate((0, -length, 0))  # B
+        time.sleep(10)
+        self.translate((width, 0, 0))  # C
+        time.sleep(10)
+        self.translate((0, length, 0))  # D
+        time.sleep(10)
+        self.go_to_starting_position()  # go back to A
+
+    def draw_triangle(self):
+        self.go_to_starting_position()  # A
+        base_length = 0.3
+        side_length = 0.1
+        time.sleep(10)
+        print("A")
+        self.translate((-base_length/2, -0.175, 0))
+        time.sleep(10)
+        print("B")
+        self.translate((base_length, 0, 0))
+        time.sleep(10)
+        print("C")
+        self.go_to_starting_position()
+        time.sleep(10)
+        print("Back to A")
+
+
+
+
+
+
+
+
 
 
