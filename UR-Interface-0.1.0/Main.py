@@ -20,7 +20,7 @@ time.sleep(0.5)
 # Set the starting position ((-0.10, -0.8, 0.3, 0, 3.14, 0))
 robot.reset_position()
 time.sleep(5)
-# robot.move_right()
+robot.draw_triangle()
 
 
 # Move robot
