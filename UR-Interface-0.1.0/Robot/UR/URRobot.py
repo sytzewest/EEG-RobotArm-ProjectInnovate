@@ -1,6 +1,7 @@
 from Communication.SocketConnection import SocketConnection
 from Robot.UR.URModbusServer import URModbusServer
 from Robot.UR.URScript import URScript
+import math
 
 import time
 
@@ -158,7 +159,7 @@ class URRobot:
 
     def move_right(self):
         """
-        Function to move the robot to the right 10cm, with a waiting time of 15 seconds between movements.
+        Function to move the robot to the right 10cm, with a waiting time of 10 seconds between movements.
         """
 
         vector = list((0.10, 0.0, 0.0))
@@ -168,82 +169,92 @@ class URRobot:
             self.translate(vector)
             self.right_moves += 1
             self.left_moves -= 1
-            time.sleep(15)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
 
     def move_left(self):
         """
-        Function to move the robot to the left 10cm, with a waiting time of 15 seconds between movements.
+        Function to move the robot to the left 10cm, with a waiting time of 10 seconds between movements.
         """
 
         vector = list((-0.10, 0.0, 0.0))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.left_moves < 3 and self.is_within_boundaries(vector):
             self.translate(vector)
             self.left_moves += 1
             self.right_moves -= 1
-            time.sleep(15)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
 
     def move_up(self):
         """
-        Function to move the robot up 9.8cm and backwards 2cm , with a waiting time of 15 seconds between movements.
+        Function to move the robot up 9.8cm and backwards 2cm , with a waiting time of 10 seconds between movements.
         """
 
         vector = list((0.0, 0.02, 0.098))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.up_moves < 2 and self.is_within_boundaries(vector):
             self.translate(vector)
             self.up_moves += 1
             self.down_moves -= 1
-            time.sleep(3)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
 
     def move_down(self):
         """
-        Function to move the robot down 9.8cm and forward 2cm, with a waiting time of 15 seconds between movements.
+        Function to move the robot down 9.8cm and forward 2cm, with a waiting time of 10 seconds between movements.
         """
 
         vector = list((0.0, -0.02, -0.098))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.down_moves < 3 and self.is_within_boundaries(vector):
             self.translate(vector)  # z changes by 60mm
             self.down_moves += 1
             self.up_moves -= 1
-            time.sleep(15)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
 
     def move_forward(self):
         """
-        Function to move the robot forward with 5 cm, with a waiting time of 15 seconds between movements.
+        Function to move the robot forward with 5 cm, with a waiting time of 10 seconds between movements.
         """
 
         vector = list((0.0, -0.05, 0.0))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.forward_moves < 3 and self.is_within_boundaries(vector):
             self.translate(vector)
             self.forward_moves += 1
             self.backward_moves -= 1
-            time.sleep(15)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
 
     def move_backward(self):
         """
-        Function to move the robot backwards 5 cm, with a waiting time of 15 seconds between movements.
+        Function to move the robot backwards 5 cm, with a waiting time of 10 seconds between movements.
         """
 
         vector = list((0.0, 0.05, 0.0))
+        if self.is_within_boundaries(vector) == 0:
+            vector = self.recalculate_position(vector)
         if self.backward_moves < 3 and self.is_within_boundaries(vector):
             self.translate(vector)
             self.backward_moves += 1
             self.forward_moves -= 1
-            time.sleep(15)
+            time.sleep(10)
         else:
             self.stopj()
             print("Stopped")
@@ -327,34 +338,42 @@ class URRobot:
             return 0
 
     def recalculate_position(self, vector):
-        next_position = self.next_position(vector)  # (0.1, 0.2, 0.3)
-        x = next_position[0] * 1000  # 1000
-        y = next_position[1] * 1000
-        z = next_position[2] * 1000
-        x_error = y_error = z_error = 0
-        if x < self.min_x:
-            x = self.min_x + 10
-            x_error = (x - self.min_x) / 1000
-        elif x > self.max_x:
-            x = self.max_x - 10
-            x_error = (x - self.max_x) / 1000
-        if y < self.min_y:
-            y = self.min_y + 10
-            y_error = (y - self.min_y) / 1000
-        elif y > self.max_y:
-            y = self.max_y - 10
-            y_error = (y - self.max_y) / 1000
-        if z < self.min_z:
-            z = self.min_z + 10
-            z_error = (z - self.min_z) / 1000
-        elif z > self.max_z:
-            z = self.max_z - 10
-            z_error = (z - self.min_z) / 1000
+        """
+        This function recalculates the position to which the arm can move without crossing the set boundaries,
+        given a vector of values
+        :param vector: The values for movement on the X, Y, Z axis
+        :return: 3 floating point values representing the new values for th X, Y, Z movement
+        """
+        next_position = self.next_position(vector)
+        current_position = self.get_tcp_position()
+        next_x = next_position[0] * 1000
+        next_y = next_position[1] * 1000
+        next_z = next_position[2] * 1000
+        if next_x < self.min_x:
+            next_x = (self.min_x - current_position[0]) / 1000
+        elif next_x > self.max_x:
+            next_x = (self.max_x - current_position[0]) / 1000
+        if next_y < self.min_y:
+            next_y = (self.min_y - current_position[1]) / 1000
+        elif next_y > self.max_y:
+            next_y = (self.max_y - current_position[1]) / 1000
+        if next_z < self.min_z:
+            next_z = (self.min_z - current_position[2]) / 1000
+        elif next_z > self.max_z:
+            next_z = (self.max_z - current_position[2]) / 1000
+        # vector = list(next_x, next_y, next_z)
+        return next_x, next_y, next_z
 
     def go_to_starting_position(self):
+        """
+        The starting point for the arm when drawing figures
+        """
         self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
 
     def draw_square(self):
+        """
+        Funciton for the arm to move in a square shape
+        """
         self.go_to_starting_position()  # A
         print("A")
         length = 0.1
@@ -372,6 +391,9 @@ class URRobot:
         print("Back to A")
 
     def draw_rectangle(self):
+        """
+        Funciton for the arm to move in a rectangle shape
+        """
         self.go_to_starting_position()  # A
         length = 0.1
         width = 0.25
@@ -385,20 +407,43 @@ class URRobot:
         self.go_to_starting_position()  # go back to A
 
     def draw_triangle(self):
+        """
+        Function for the arm to move in a triangle shape
+        """
         self.go_to_starting_position()  # A
         base_length = 0.3
-        side_length = 0.1
+        side_length = 0.2
+        x_b = base_length/2
+        y_b = math.sqrt(math.pow(side_length, 2) - math.pow(base_length/2), 2)
         time.sleep(10)
         print("A")
-        self.translate((-base_length/2, -0.175, 0))
+        self.translate((-x_b, -y_b, 0))
         time.sleep(10)
         print("B")
-        self.translate((base_length, 0, 0))
+        self.translate((x_b, 0, 0))
         time.sleep(10)
         print("C")
         self.go_to_starting_position()
         time.sleep(10)
         print("Back to A")
+
+    def move_to_pose(self):
+        """
+        Function to move the arm as long as the attention level is over 75
+        Might need changes after testing with the headset
+        """
+        attention_level = 75
+        while attention_level >= 75:
+            vector = list((0.05, 0.05, 0.05))
+            if self.is_within_boundaries(vector) == 0:
+                vector = self.recalculate_position(vector)
+            if self.is_within_boundaries(vector):
+                self.translate(vector)
+                time.sleep(3)
+            else:
+                self.stopj()
+                time.sleep(10)
+                self.reset_position()
 
 
 

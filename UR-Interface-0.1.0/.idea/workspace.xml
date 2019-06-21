@@ -13,8 +13,8 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="104">
-              <caret line="16" column="44" lean-forward="true" selection-start-line="16" selection-start-column="44" selection-end-line="16" selection-end-column="44" />
+            <state relative-caret-position="447">
+              <caret line="43" column="25" lean-forward="true" selection-start-line="43" selection-start-column="25" selection-end-line="43" selection-end-column="25" />
               <folding>
                 <element signature="e#34#45#0" expanded="true" />
               </folding>
@@ -25,8 +25,8 @@
       <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Robot/UR/URRobot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="346">
-              <caret line="351" column="45" selection-start-line="351" selection-start-column="45" selection-end-line="351" selection-end-column="45" />
+            <state relative-caret-position="591">
+              <caret line="440" column="28" selection-start-line="440" selection-start-column="28" selection-end-line="440" selection-end-column="28" />
               <folding>
                 <element signature="e#0#59#0" expanded="true" />
               </folding>
@@ -37,7 +37,7 @@
       <file pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/Robot/UR/URModbusServer.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="119">
+            <state relative-caret-position="646">
               <caret line="40" column="33" selection-start-line="53" selection-start-column="19" selection-end-line="53" selection-end-column="38" />
               <folding>
                 <element signature="e#0#45#0" expanded="true" />
@@ -165,7 +165,8 @@
     <servers />
   </component>
   <component name="ToolWindowManager">
-    <frame x="-7" y="-7" width="1550" height="838" extended-state="6" />
+    <frame x="-7" y="-7" width="1550" height="838" extended-state="7" />
+    <editor active="true" />
     <layout>
       <window_info content_ui="combo" id="Project" order="0" weight="0.11162484" />
       <window_info id="Structure" order="1" side_tool="true" weight="0.25" />
@@ -241,16 +242,9 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Robot/UR/URScript.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1122">
-          <caret line="66" column="59" selection-start-line="66" selection-start-column="59" selection-end-line="66" selection-end-column="59" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/Robot/UR/URModbusServer.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
+        <state relative-caret-position="646">
           <caret line="40" column="33" selection-start-line="53" selection-start-column="19" selection-end-line="53" selection-end-column="38" />
           <folding>
             <element signature="e#0#45#0" expanded="true" />
@@ -258,10 +252,17 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/Robot/UR/URScript.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1122">
+          <caret line="66" column="59" selection-start-line="66" selection-start-column="59" selection-end-line="66" selection-end-column="59" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/Main.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="104">
-          <caret line="16" column="44" lean-forward="true" selection-start-line="16" selection-start-column="44" selection-end-line="16" selection-end-column="44" />
+        <state relative-caret-position="447">
+          <caret line="43" column="25" lean-forward="true" selection-start-line="43" selection-start-column="25" selection-end-line="43" selection-end-column="25" />
           <folding>
             <element signature="e#34#45#0" expanded="true" />
           </folding>
@@ -270,8 +271,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/Robot/UR/URRobot.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="346">
-          <caret line="351" column="45" selection-start-line="351" selection-start-column="45" selection-end-line="351" selection-end-column="45" />
+        <state relative-caret-position="591">
+          <caret line="440" column="28" selection-start-line="440" selection-start-column="28" selection-end-line="440" selection-end-column="28" />
           <folding>
             <element signature="e#0#59#0" expanded="true" />
           </folding>
