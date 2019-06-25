@@ -17,8 +17,9 @@ time.sleep(0.5)
 
 # Set the starting position ((-0.10, -0.8, 0.3, 0, 3.14, 0))
 robot.reset_position()
-time.sleep(5)
-robot.draw_triangle()
+time.sleep(10)
+# robot.change_magnet_state()
+# robot.move_down_abs()
 
 # Move robot
 # robot.move_right()     # (x+50, y, z)
