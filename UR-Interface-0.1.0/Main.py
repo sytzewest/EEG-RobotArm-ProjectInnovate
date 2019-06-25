@@ -3,8 +3,6 @@
 import time
 
 from Robot.UR.URRobot import URRobot
-from Vision.Camera import Camera
-
 
 # Start camera and view it
 # camera = Camera().start()
@@ -22,7 +20,6 @@ robot.reset_position()
 time.sleep(5)
 robot.draw_triangle()
 
-
 # Move robot
 # robot.move_right()     # (x+50, y, z)
 # robot.move_down()      # (x, y-20, z-60)
@@ -30,24 +27,25 @@ robot.draw_triangle()
 
 
 def process_commands(command):
-	if command == 1:
-		robot.move_right()
-	elif command == 2:
-		robot.move_left()
-	elif command == 3:
-		robot.move_down()
-	elif command == 4:
-		robot.move_up()
-	elif command == 5:
-		robot.move_backward()
-	elif command == 6:
-		robot.move_forward()
-	elif command == 7:
-		robot.change_magnet_state()
-	elif command == 8:
-		robot.reset_position()
-	else:
-		robot.stopj()
+    if command == 1:
+        robot.move_right()
+    elif command == 2:
+        robot.move_left()
+    elif command == 3:
+        robot.move_down()
+    elif command == 4:
+        robot.move_up()
+    elif command == 5:
+        robot.move_backward()
+    elif command == 6:
+        robot.move_forward()
+    elif command == 7:
+        robot.change_magnet_state()
+    elif command == 8:
+        robot.reset_position()
+    else:
+        robot.stopj()
+
 
 """
 def process_frame(frame):
@@ -81,7 +79,6 @@ def process_frame(frame):
 
 	return frame, circle_data
 """
-
 
 # Todo: Create class around the get_camera_position_data function
 # Todo: Create offset input for the camera
