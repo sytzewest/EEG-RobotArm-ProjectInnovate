@@ -17,7 +17,9 @@ time.sleep(0.5)
 
 # Set the starting position ((-0.10, -0.8, 0.3, 0, 3.14, 0))
 robot.reset_position()
-time.sleep(10)
+time.sleep(2)
+print(robot.is_up())
+print(robot.is_down())
 # robot.change_magnet_state()
 # robot.move_down_abs()
 

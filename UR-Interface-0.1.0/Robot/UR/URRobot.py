@@ -27,8 +27,9 @@ class URRobot:
         self.forward_moves = 0
         self.backward_moves = 0
 
-        # variable to memorize the state of the magnet: 1 if active, 0 otherwise
-        self.is_magnet_active = 0
+        # variable to memorize the state of the magnet: true if active, false otherwise
+        self.is_magnet_active = False
+        self.set_io(8, False)
 
         # variables representing the minimum and maximum values for the X, Y & Z axis, which the arm can reach (in mm)
         self.max_x = 100.00  # to right, 2 moves
@@ -264,10 +265,8 @@ class URRobot:
         Activate the magnet if it is off or deactivate it if it's on
         """
 
-        if self.is_magnet_active == 0:
-            self.set_io(8, True)
-        else:
-            self.set_io(8, False)
+        self.is_magnet_active = not self.is_magnet_active
+        self.set_io(8, self.is_magnet_active)
 
     def refresh_movement_count(self):
         """
@@ -450,6 +449,17 @@ class URRobot:
 
     def move_up_abs(self):
         self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
+
+    def is_up(self):
+        position = self.get_tcp_position()
+        if 290 <= position[2] <= 310:
+            return 1
+        else:
+            return 0
+
+    def is_down(self):
+        position = self.get_tcp_position()
+        return position[2] < 75
 
 
 
