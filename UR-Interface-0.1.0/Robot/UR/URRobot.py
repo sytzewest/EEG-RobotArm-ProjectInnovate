@@ -217,7 +217,7 @@ class URRobot:
         if self.is_within_boundaries(vector) == 0:
             vector = self.recalculate_position(vector)
         if self.down_moves < 3 and self.is_within_boundaries(vector):
-            self.translate(vector)  # z changes by 60mm
+            self.translate(vector)
             self.down_moves += 1
             self.up_moves -= 1
             time.sleep(10)
@@ -290,9 +290,9 @@ class URRobot:
 
         self.set_tcp((0.05, -0.05, 0.295, 0, 0, 0))
         time.sleep(0.5)
-        self.movel((-0.10, -0.8, 0.3, 0, 3.14, 0))
+        self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
         self.refresh_movement_count()
-        time.sleep(15)
+        time.sleep(7)
 
     def get_x_position(self):
         """
@@ -444,6 +444,12 @@ class URRobot:
                 self.stopj()
                 time.sleep(10)
                 self.reset_position()
+
+    def move_down_abs(self):
+        self.movel((-0.080, -0.90, 0.073, 0, 3.14, 0))
+
+    def move_up_abs(self):
+        self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
 
 
 
