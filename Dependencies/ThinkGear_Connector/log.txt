@@ -2787,3 +2787,26 @@
 2019-06-25 16:54:26.1375|INFO|ThinkGear.Libraries.Bridge|Device COM6 connected.
 2019-06-25 16:57:09.1688|INFO|ThinkGear.Libraries.Bridge|Device COM6 connected.
 2019-06-25 16:58:22.8602|INFO|ThinkGear.Libraries.Bridge|Device COM6 connected.
+2019-06-26 12:35:21.6970|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:37:39.7887|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:38:02.9472|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:39:44.6109|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:40:45.0568|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:41:33.1859|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:44:15.0249|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:45:40.9910|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:46:13.8255|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 12:46:38.7194|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:13:02.7924|INFO|ThinkGear.Libraries.Bridge|Device connect fail. Retrying...
+2019-06-26 13:14:25.1269|INFO|ThinkGear.Libraries.Bridge|Device connect fail. Retrying...
+2019-06-26 13:14:34.6581|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:14:57.7517|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:17:09.1730|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:19:28.3328|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:24:00.7978|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:30:59.4795|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:32:35.5151|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:40:16.8190|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:43:55.7269|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:46:24.9945|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.
+2019-06-26 13:49:52.3461|INFO|ThinkGear.Libraries.Bridge|Device COM7 connected.

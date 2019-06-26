@@ -27,7 +27,9 @@ class Motion(Enum):
     UP = auto()
 
 
-threshold = 60
+threshold = 40
+blink_threshold = 50
+
 stopTask = None
 cut_off = False
 
@@ -84,7 +86,7 @@ if __name__ == '__main__':
             continue  # ignore invalid packets
 
         # process blinks
-        if 'blinkStrength' in packet and packet['blinkStrength'] > 60:
+        if 'blinkStrength' in packet and packet['blinkStrength'] > blink_threshold:
             print(f"Blink, last was {time.time() - last_blink} seconds ago")
             # detect double blink and change magnet
             if (time.time() - last_blink) < 3:

@@ -445,7 +445,7 @@ class URRobot:
                 self.reset_position()
 
     def move_down_abs(self):
-        self.movel((-0.080, -0.90, 0.073, 0, 3.14, 0))
+        self.movel((-0.080, -0.90, 0.07, 0, 3.14, 0))
 
     def move_up_abs(self):
         self.movel((-0.1, -0.8, 0.3, 0, 3.14, 0))
